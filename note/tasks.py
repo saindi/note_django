@@ -4,7 +4,7 @@ from note_django.celery import app
 
 @app.task
 def send_some_email(email, message):
-    subject = "You create new note!"
+    subject = message
 
     send_mail(
         subject,

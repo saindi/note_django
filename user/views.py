@@ -7,8 +7,8 @@ from note.models import NoteModel
 from note_django.utils import WithoutLoginRequiredMixin
 from user.forms import SignInForm, SignUpForm
 from user.models import UserModel
-from note_django.utils import SendMail
 from django.contrib.auth import login
+from note.tasks import send_some_email
 
 
 class UserView(LoginRequiredMixin, TemplateView):
@@ -31,7 +31,7 @@ class SignInView(WithoutLoginRequiredMixin, LoginView):
     def form_valid(self, form):
         login(self.request, form.get_user())
 
-        SendMail.user_logged_in(self.request.user)
+        send_some_email.delay(self.request.user.email, "You are logged in")
 
         return redirect(reverse_lazy('note:list'))
 
@@ -44,6 +44,6 @@ class SignUpView(WithoutLoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.save(commit=False)
 
-        SendMail.create_new_user(UserModel.objects.get(username=form.cleaned_data.get('username')))
+        send_some_email.delay(form.cleaned_data.get('email'), "Register new acc!")
 
         return redirect(reverse_lazy('user:sign-in'))

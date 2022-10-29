@@ -3,8 +3,8 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, UpdateView, CreateView, DeleteView
 from note.models import NoteModel
-from note_django.utils import UserCreateThisNoteRequiredMixin, SendMail
-from note.tasks import send_spam_email
+from note_django.utils import UserCreateThisNoteRequiredMixin
+from note.tasks import send_some_email
 
 
 class NoteListView(ListView):
@@ -24,7 +24,7 @@ class NoteCreateView(LoginRequiredMixin, CreateView):
         instance.user = self.request.user
         instance.save()
 
-        SendMail.user_create_note(instance)
+        send_some_email.delay(instance.user.email, "You create new note!")
 
         return super().form_valid(form)
 
@@ -38,7 +38,7 @@ class NoteUpdateView(LoginRequiredMixin, UserCreateThisNoteRequiredMixin, Update
     def form_valid(self, form):
         instance = form.save(commit=False)
 
-        SendMail.user_update_note(instance)
+        send_some_email.delay(instance.user.email, "You note is update")
 
         return super().form_valid(form)
 
@@ -52,7 +52,6 @@ class NoteDeleteView(LoginRequiredMixin, UserCreateThisNoteRequiredMixin, Delete
     def form_valid(self, form):
         super().form_valid(form)
 
-        SendMail.user_delete_note(self.object)
-
+        send_some_email.delay(self.object.user.email, "You note is DELETE!!!")
 
         return redirect(self.success_url)

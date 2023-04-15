@@ -14,3 +14,17 @@ pip install -r requirements.txt
 ```
 poetry install
 ```
+Run migrations:
+```shell
+python manage.py migrate
+```
+
+Create superuser:
+```shell
+python manage.py createsuperuser
+```
+
+Run server:
+```shell
+python manage.py runserver
+```
